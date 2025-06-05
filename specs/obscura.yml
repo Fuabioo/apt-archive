@@ -1,7 +1,7 @@
 name: obscura
 repo: Fuabioo/obscura
 major: 0
-description: "Buf protocol buffer formatter wrapper for stdin text editor integration"
+description: "File encryption CLI"
 architectures:
   amd64:
     selector: x86_64

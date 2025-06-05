@@ -1,7 +1,7 @@
 name: php-cs-fixer-stdin
 repo: Fuabioo/php-cs-fixer-stdin
 major: 0
-description: "Buf protocol buffer formatter wrapper for stdin text editor integration"
+description: "php-cs-fixer formatter wrapper for stdin text editor integration"
 architectures:
   amd64:
     selector: x86_64
