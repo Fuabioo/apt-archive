@@ -30,3 +30,5 @@ gpg*
 .env
 *.gpg
 releases-latest.json
+
+current-agent-work
