@@ -30,5 +30,5 @@ postinst: |
       BoldMagenta='\033[1;35m'
   fi
   printf "${Dim}Replace ${Red}rm${Dim} with ${Green}dontrm${Dim} in your shell configuration"
-  printf "(e.g. ${BoldMagenta}.bashrc ${BoldMagenta}.zshrc${Dim}).${NoColor}"
+  printf "(e.g. ${BoldMagenta}.bashrc ${BoldMagenta}.zshrc${Dim}).${NoColor}\n"
   printf "${Yellow}rm() {\n  dontrm \$@\n}${NoColor}\n"
