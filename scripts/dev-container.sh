@@ -85,6 +85,9 @@ fi
 
 divider
 
+info "Setting up ephemeral GPG environment variables"
+source /usr/local/bin/set-gpg-env.sh
+
 info "Loading GPG profile"
 scripts/load-gpg-profile.sh
 
