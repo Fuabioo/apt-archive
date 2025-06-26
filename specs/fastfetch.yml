@@ -1,0 +1,13 @@
+name: fastfetch
+repo: fastfetch-cli/fastfetch
+package_type: deb
+description: "A neofetch-like tool for fetching system information"
+architectures:
+  amd64:
+    deb_pattern: "fastfetch-linux-amd64\\.deb$"
+  arm64:
+    deb_pattern: "fastfetch-linux-aarch64\\.deb$"
+  armv6:
+    deb_pattern: "fastfetch-linux-armv6l\\.deb$"
+  armv7:
+    deb_pattern: "fastfetch-linux-armv7l\\.deb$"

@@ -161,3 +161,11 @@ info "Verifying repository by installing and executing one package"
 command="dontrm version"
 echo $command
 eval $command
+
+info "Installing fastfetch to verify external pre-built .deb package"
+apt install fastfetch
+
+info "Verifying repository by installing and executing one package"
+command="fastfetch"
+echo $command
+eval $command

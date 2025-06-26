@@ -45,10 +45,10 @@ for ARCH in $ARCHS; do
 
     echo "  Using pattern: $DEB_PATTERN"
 
-    # Find matching .deb asset
+    # Find matching .deb asset - try both v-prefixed and non-prefixed versions
     asset_url=$(jq -r --arg pattern "$DEB_PATTERN" '
         .[]
-        | select (.tag_name == "v'$VERSION'")
+        | select (.tag_name == "v'$VERSION'" or .tag_name == "'$VERSION'")
         | .assets[]
         | select(.name | test($pattern))
         | .url
@@ -56,7 +56,7 @@ for ARCH in $ARCHS; do
 
     asset_name=$(jq -r --arg pattern "$DEB_PATTERN" '
         .[]
-        | select (.tag_name == "v'$VERSION'")
+        | select (.tag_name == "v'$VERSION'" or .tag_name == "'$VERSION'")
         | .assets[]
         | select(.name | test($pattern))
         | .name
@@ -64,8 +64,8 @@ for ARCH in $ARCHS; do
 
     if [ -z "$asset_name" ] || [ -z "$asset_url" ]; then
         echo "Error: Could not find a compatible .deb asset for architecture $ARCH with pattern: $DEB_PATTERN"
-        echo "Available assets for version v$VERSION:"
-        jq -r '.[] | select(.tag_name == "v'$VERSION'") | .assets[] | .name' < ${response_file} || echo "  No assets found"
+        echo "Available assets for version $VERSION:"
+        jq -r '.[] | select(.tag_name == "v'$VERSION'" or .tag_name == "'$VERSION'") | .assets[] | .name' < ${response_file} || echo "  No assets found"
         exit 1
     fi
 
@@ -108,7 +108,7 @@ for ARCH in $ARCHS; do
 
     asset_url=$(jq -r --arg os "Linux" --arg arch "$SELECTOR" '
         .[]
-        | select (.tag_name == "v'$VERSION'")
+        | select (.tag_name == "v'$VERSION'" or .tag_name == "'$VERSION'")
         | .assets[]
         | select(.name | test($os; "i") and test($arch; "i"))
         | .url
@@ -116,7 +116,7 @@ for ARCH in $ARCHS; do
 
     asset_name=$(jq -r --arg os "Linux" --arg arch "$SELECTOR" '
         .[]
-        | select (.tag_name == "v'$VERSION'")
+        | select (.tag_name == "v'$VERSION'" or .tag_name == "'$VERSION'")
         | .assets[]
         | select(.name | test($os; "i") and test($arch; "i"))
         | .name
@@ -124,8 +124,8 @@ for ARCH in $ARCHS; do
 
     if [ -z "$asset_name" ] || [ -z "$asset_url" ]; then
         echo "Error: Could not find a compatible release asset for Linux $SELECTOR."
-        echo "Available assets for version v$VERSION:"
-        jq -r '.[] | select(.tag_name == "v'$VERSION'") | .assets[] | .name' < ${response_file} || echo "  No assets found"
+        echo "Available assets for version $VERSION:"
+        jq -r '.[] | select(.tag_name == "v'$VERSION'" or .tag_name == "'$VERSION'") | .assets[] | .name' < ${response_file} || echo "  No assets found"
         exit 1
     fi
 
