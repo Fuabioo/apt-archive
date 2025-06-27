@@ -78,8 +78,25 @@ Uninstall packages you no longer need:
 ## System Requirements
 
 - **Operating System:** Debian-based Linux distributions (Ubuntu, Debian, etc.)
-- **Architecture:** amd64 (x86_64)
+- **Minimum Ubuntu Version:** Ubuntu 20.04 LTS (Focal Fossa) or newer
+- **Supported Architectures:** amd64, arm64, armhf, armv6, armv7
 - **Privileges:** sudo access required for installation
+
+### Compatibility Notes
+
+This repository requires **Ubuntu 20.04 LTS** or newer due to:
+- Modern GPG key handling (`signed-by` parameter)
+- HTTPS certificate verification requirements
+- Updated APT security features
+
+**System Compatibility:**
+- ✅ **Ubuntu 20.04 LTS+** - Fully supported
+- ✅ **Debian 11 (Bullseye)+** - Fully supported
+- ⚠️ **Debian 10 (Buster)** - May require manual updates
+- ❌ **Ubuntu 18.04 or older** - Not supported (GPG keyring issues)
+- ❌ **Debian 9 or older** - Not supported
+
+If you're using an older system, consider upgrading to a supported version for the best experience.
 
 ## Troubleshooting
 
@@ -109,6 +126,28 @@ If a package isn't found after setup:
 # Force refresh package lists
 sudo apt update --allow-releaseinfo-change
 ```
+
+### Older Ubuntu/Debian Versions
+If you're running Ubuntu 18.04 or older and encounter GPG keyring errors:
+
+**Option 1: Upgrade to a supported version (Recommended)**
+```sh
+# Check your current version
+lsb_release -a
+
+# For Ubuntu systems, upgrade to 20.04 LTS or newer
+sudo do-release-upgrade
+```
+
+**Option 2: Manual workaround for legacy systems**
+```sh
+# Use the legacy trusted.gpg method (less secure)
+curl -fsSL https://apt.fuabioo.com/public.gpg | sudo apt-key add -
+echo "deb [arch=$(dpkg --print-architecture)] https://apt.fuabioo.com stable main" | sudo tee /etc/apt/sources.list.d/apt.fuabioo.list
+sudo apt update
+```
+
+**Note:** The legacy method bypasses modern security features and is not recommended for production systems.
 
 ## Uninstalling the Repository
 
