@@ -13,22 +13,44 @@ export default defineConfig({
     starlight({
       title: "Fuabioo's APT repository",
       logo: {
-        src: "./src/assets/logo.svg",
+        src: "./src/assets/logo.svg"
       },
       pagefind: false,
+      sidebar: [
+        {
+          label: "Home",
+          link: "/"
+        },
+        {
+          label: "Installation Guide",
+          link: "/installation/"
+        },
+        {
+          label: "Available Packages",
+          link: "/packages/"
+        },
+        {
+          label: "Testing & Development",
+          link: "/testing/"
+        },
+        {
+          label: "How It Works",
+          link: "/how-it-works/"
+        }
+      ],
       social: [
         {
           icon: "github",
           label: "GitHub",
-          href: "https://github.com/Fuabioo/apt-archive",
-        },
+          href: "https://github.com/Fuabioo/apt-archive"
+        }
       ],
       plugins: [
         catppuccin({
           dark: { flavor: "mocha" },
-          light: { flavor: "latte" },
-        }),
-      ],
-    }),
-  ],
+          light: { flavor: "latte" }
+        })
+      ]
+    })
+  ]
 });

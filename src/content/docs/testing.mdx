@@ -1,0 +1,323 @@
+---
+title: Testing & Development
+description: Comprehensive guide to the ephemeral Docker container testing approach used for this APT repository
+---
+
+import { Code } from '@astrojs/starlight/components';
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+This repository uses an innovative ephemeral Docker container approach for local testing and development. This ensures every build is tested in a clean, reproducible environment that mirrors production conditions.
+
+## Why Ephemeral Testing?
+
+Traditional package testing often suffers from:
+- 🗑️ **State pollution** - Previous test runs affecting new tests
+- 🌐 **Environment drift** - Developer machines differing from production
+- 🧹 **Manual cleanup** - Forgetting to remove test packages and configurations
+- 🔄 **Inconsistent results** - "Works on my machine" syndrome
+
+Our ephemeral approach solves all of these problems by creating a fresh, isolated environment for every test run.
+
+## Docker-Based Testing Architecture
+
+<CardGrid>
+  <Card title="🐳 Ephemeral Containers" icon="laptop">
+    Fresh Ubuntu 22.04 environment for every test run
+  </Card>
+  <Card title="🔐 Temporary GPG Keys" icon="approve-check">
+    Auto-generated keys that expire in 30 days
+  </Card>
+  <Card title="📡 Local HTTPS Server" icon="bars">
+    nginx with SSL certificates for realistic testing
+  </Card>
+  <Card title="🔄 Complete Automation" icon="rocket">
+    End-to-end testing from build to verification
+  </Card>
+</CardGrid>
+
+## Container Environment Setup
+
+### Base Container Configuration
+
+The testing environment starts with a clean Ubuntu 22.04 base:
+
+<Code code="FROM ubuntu:22.04
+
+RUN apt update && \
+    apt install -y wget curl gnupg jq dpkg-dev apt-utils tar rng-tools && \
+    wget https://github.com/mikefarah/yq/releases/download/v4.45.4/yq_linux_amd64 -O /usr/local/bin/yq && \
+    chmod +x /usr/local/bin/yq
+
+RUN apt install -y ca-certificates libnss3-tools nginx && \
+    curl -sJLO 'https://dl.filippo.io/mkcert/latest?for=linux/amd64' && \
+    chmod +x mkcert-v*-linux-amd64 && \
+    cp mkcert-v*-linux-amd64 /usr/local/bin/mkcert" lang="dockerfile" />
+
+### HTTPS Testing Infrastructure
+
+For realistic testing, we set up a complete HTTPS server:
+
+<Code code="RUN mkcert -install && \
+    mkdir -p /etc/nginx/certs && \
+    cd /etc/nginx/certs && \
+    mkcert localhost" lang="dockerfile" />
+
+This creates:
+- 🔒 **Local Certificate Authority** - mkcert generates trusted certificates
+- 📜 **SSL Certificates** - Valid certificates for `localhost`
+- 🌐 **HTTPS Repository** - Tests real-world SSL/TLS scenarios
+
+## Ephemeral GPG Key Generation
+
+### Security-First Approach
+
+The container generates temporary GPG keys specifically for testing:
+
+<Code code="# WARNING: This GPG key generation is ONLY for local testing/development
+# NEVER use this in production - it creates ephemeral keys that are not secure
+
+RUN mkdir -p ~/.gnupg && \
+    chmod 700 ~/.gnupg && \
+    echo 'pinentry-mode loopback' >> ~/.gnupg/gpg.conf && \
+    echo 'use-agent' >> ~/.gnupg/gpg.conf" lang="dockerfile" />
+
+### GPG Key Configuration
+
+The ephemeral keys are configured with appropriate security parameters:
+
+<Code code="echo 'Key-Type: RSA' >> /tmp/gpg-batch.conf && \
+echo 'Key-Length: 2048' >> /tmp/gpg-batch.conf && \
+echo 'Subkey-Type: RSA' >> /tmp/gpg-batch.conf && \
+echo 'Subkey-Length: 2048' >> /tmp/gpg-batch.conf && \
+echo 'Name-Real: APT Archive Test Key' >> /tmp/gpg-batch.conf && \
+echo 'Name-Comment: EPHEMERAL - FOR TESTING ONLY' >> /tmp/gpg-batch.conf && \
+echo 'Name-Email: test@localhost.local' >> /tmp/gpg-batch.conf && \
+echo 'Expire-Date: 30d' >> /tmp/gpg-batch.conf && \
+echo '%no-protection' >> /tmp/gpg-batch.conf" lang="bash" />
+
+Key features:
+- 🔐 **2048-bit RSA** - Adequate security for testing
+- ⏰ **30-day expiration** - Automatic cleanup
+- 🏷️ **Clear labeling** - "EPHEMERAL - FOR TESTING ONLY"
+- 🔓 **No passphrase** - Enables automated testing
+
+### Runtime GPG Environment
+
+GPG environment variables are set dynamically at container startup:
+
+<Code code="#!/bin/bash
+# Export GPG key ID and private key as environment variables
+export GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG 2>/dev/null | grep 'sec ' | sed 's/.*rsa[0-9]*\/\([A-F0-9]\{16\}\).*/\1/')
+export GPG_PRIVATE_KEY=$(gpg --armor --export-secret-keys $GPG_KEY_ID 2>/dev/null | base64 -w 0)
+echo 'GPG_KEY_ID=$GPG_KEY_ID' > /tmp/gpg-env
+echo 'GPG_PRIVATE_KEY=$GPG_PRIVATE_KEY' >> /tmp/gpg-env
+source /tmp/gpg-env" lang="bash" />
+
+## Complete Testing Workflow
+
+### Development Container Startup
+
+When you run `docker-compose up build`, the container executes a comprehensive testing workflow:
+
+<Code code="#!/bin/bash
+set -e
+
+export DEBIAN_FRONTEND=noninteractive
+
+info 'Before adding, updating official packages'
+apt update -qq && apt upgrade -qq -y
+
+debug 'Executing cleanup of previous runs'
+if [ -d dists ]; then rm -r dists; fi
+if [ -d pool ]; then rm -r pool; fi
+
+info 'Setting up ephemeral GPG environment variables'
+source /usr/local/bin/set-gpg-env.sh
+
+info 'Loading GPG profile'
+scripts/load-gpg-profile.sh" lang="bash" />
+
+### Package Building Phase
+
+The container builds all packages from specifications:
+
+<Code code="info 'Using specs to generate .deb packages'
+for f in specs/*.yml; do
+    debug 'Generating .deb for $f'
+    bash scripts/wrap-to-deb.sh '$f'
+done
+
+info 'Building APT repository'
+bash scripts/build-repo.sh" lang="bash" />
+
+### Local Repository Server Setup
+
+The container creates a complete APT repository server:
+
+<Code code="debug 'Preparing test HTTPS server'
+cp -r dists /usr/share/nginx/html/dists
+cp -r pool /usr/share/nginx/html/pool
+cp public.gpg /usr/share/nginx/html/public.gpg
+
+debug 'Generating nginx 443 configuration'
+rm /etc/nginx/sites-enabled/default
+echo 'server {
+    listen 443 ssl;
+    server_name localhost;
+
+    ssl_certificate /etc/nginx/certs/localhost.pem;
+    ssl_certificate_key /etc/nginx/certs/localhost-key.pem;
+
+    location / {
+        root /usr/share/nginx/html;
+        index index.html index.htm;
+    }
+}' >> /etc/nginx/sites-enabled/default
+
+debug 'Starting up nginx server'
+nginx &" lang="bash" />
+
+### End-to-End Repository Testing
+
+The container performs complete APT repository testing:
+
+<Code code="info 'Adding custom APT to testing runtime (does not require sudo)'
+curl -fsSL https://localhost/public.gpg | tee /usr/share/keyrings/apt.fuabioo.gpg > /dev/null
+echo 'deb [signed-by=/usr/share/keyrings/apt.fuabioo.gpg] https://localhost stable main' | tee /etc/apt/sources.list.d/apt.fuabioo.list
+
+info 'After adding, updating packages and installing dontrm'
+apt update && apt install dontrm
+
+info 'Verifying repository by installing and executing one package'
+dontrm version
+
+info 'Installing fastfetch to verify external pre-built .deb package'
+apt install fastfetch
+fastfetch" lang="bash" />
+
+## Security and Verification
+
+### GPG Signature Verification
+
+The testing process includes comprehensive signature verification:
+
+<Code code="# Build repository with signatures
+apt-ftparchive -c=conf/release.conf release dists/stable > dists/stable/Release
+
+# Sign the Release file
+gpg --default-key '$GPG_KEY_ID' \
+    --digest-algo SHA256 \
+    -abs \
+    -o dists/stable/Release.gpg dists/stable/Release
+
+# Create signed InRelease file
+gpg --default-key '$GPG_KEY_ID' \
+    --digest-algo SHA256 \
+    --clearsign \
+    -o dists/stable/InRelease dists/stable/Release
+
+# Export public key
+gpg --export '$GPG_KEY_ID' > public.gpg
+
+# Verify signatures
+gpg --verify dists/stable/Release.gpg dists/stable/Release" lang="bash" />
+
+### Package Integrity Verification
+
+Each package undergoes multiple integrity checks:
+
+- **MD5 Checksums** - Basic integrity verification
+- **SHA1 Hashes** - Enhanced integrity checking  
+- **SHA256 Hashes** - Cryptographically secure verification
+- **GPG Signatures** - Authenticity verification
+
+## Benefits of Ephemeral Testing
+
+### Development Advantages
+
+✅ **Reproducible Builds** - Same environment every time  
+✅ **Isolated Testing** - No host system contamination  
+✅ **Automated Cleanup** - No manual cleanup required  
+✅ **Production Parity** - Testing mirrors production environment  
+✅ **Fast Iteration** - Quick feedback on changes  
+
+### Security Benefits
+
+🔒 **Contained Risks** - Test keys never leave the container  
+🗑️ **Automatic Cleanup** - All test artifacts destroyed  
+⏰ **Time-limited Keys** - GPG keys expire automatically  
+🛡️ **Isolation** - No impact on host GPG keyring  
+
+### Quality Assurance
+
+🧪 **Comprehensive Testing** - Full installation and verification cycle  
+📊 **Consistent Results** - Eliminates "works on my machine" issues  
+🔄 **Continuous Integration** - Easy to integrate with CI/CD pipelines  
+⚡ **Fast Feedback** - Quick detection of packaging issues  
+
+## Running the Tests Locally
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- Basic understanding of APT repositories
+
+### Quick Start
+
+<Code code="# Clone the repository
+git clone https://github.com/Fuabioo/apt-archive.git
+cd apt-archive
+
+# Run the ephemeral testing environment
+docker-compose up build
+
+# The container will:
+# 1. Generate ephemeral GPG keys
+# 2. Build all packages from specs/
+# 3. Create repository structure  
+# 4. Set up local HTTPS server
+# 5. Test repository installation
+# 6. Verify package functionality
+# 7. Destroy itself with all test artifacts" lang="bash" />
+
+### What You'll See
+
+The testing process provides detailed logging:
+
+- **🔧 Build Phase** - Package creation from specifications
+- **📦 Repository Phase** - APT repository structure generation
+- **🔐 Signing Phase** - GPG signature creation and verification
+- **🌐 Server Phase** - Local HTTPS repository server startup
+- **✅ Testing Phase** - Package installation and verification
+- **🗑️ Cleanup Phase** - Automatic container destruction
+
+## Integration with CI/CD
+
+This ephemeral testing approach integrates seamlessly with continuous integration:
+
+<Code code="# Example GitHub Actions workflow
+name: Test Repository
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test APT Repository
+        run: docker-compose up --exit-code-from build build" lang="yaml" />
+
+The ephemeral nature ensures:
+- **Clean CI Runs** - No state persists between builds
+- **Parallel Execution** - Multiple jobs don't interfere
+- **Consistent Results** - Same behavior in CI and local development
+
+---
+
+## Conclusion
+
+The ephemeral Docker container testing approach provides a robust, secure, and reliable way to test APT repositories. It ensures that every package is thoroughly tested in a production-like environment while maintaining security best practices and development efficiency.
+
+This methodology can be adapted for other packaging systems and serves as a model for secure, automated package testing workflows.
+
+*Want to understand more about the repository structure? Check out the [How It Works](/how-it-works/) page for detailed technical explanations.*

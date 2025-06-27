@@ -1,0 +1,139 @@
+---
+title: Installation Guide
+description: Complete guide to setting up Fuabioo's APT repository and installing packages
+---
+
+import { Code } from '@astrojs/starlight/components';
+import { Steps } from '@astrojs/starlight/components';
+
+This guide will walk you through setting up Fuabioo's APT repository on your system and installing packages.
+
+## Repository Setup
+
+<Steps>
+
+1. **Install the GPG key** for security
+
+   ```sh
+   curl -fsSL https://apt.fuabioo.com/public.gpg | sudo tee /usr/share/keyrings/apt.fuabioo.gpg > /dev/null
+   ```
+
+2. **Add the repository** to your APT sources for your specific architecture
+
+   ```sh
+   echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/apt.fuabioo.gpg] https://apt.fuabioo.com stable main" | sudo tee /etc/apt/sources.list.d/apt.fuabioo.list
+   ```
+
+3. **Update your package list**
+
+   ```sh
+   sudo apt update
+   ```
+
+4. **(Optional) Verify installation** by installing a test package
+
+   ```sh
+   sudo apt install dontrm
+   ```
+
+   ```sh
+   dontrm version
+   ```
+
+</Steps>
+
+## Installing Packages
+
+Once the repository is set up, you can install any available package:
+
+<Code code="sudo apt install <package-name>" lang="bash" />
+
+**Examples:**
+- `sudo apt install dontrm` - Install safe rm alternative  
+- `sudo apt install fastfetch` - Install system info tool
+- `sudo apt install buf-fmt-stdin` - Install protocol buffer formatter
+
+## Package Management
+
+### Get Package Information
+View detailed information about any package before installing:
+<Code code="apt show <package-name>" lang="bash" />
+
+### List Available Packages  
+See all packages available from this repository:
+<Code code="apt list | grep fuabioo" lang="bash" />
+
+### List Installed Packages  
+See which packages from this repository are currently installed:
+<Code code="apt list --installed | grep fuabioo" lang="bash" />
+
+### Update Packages
+Keep your packages up to date:
+<Code code="sudo apt update && sudo apt upgrade" lang="bash" />
+
+### Remove Packages
+Uninstall packages you no longer need:
+<Code code="sudo apt remove <package-name>" lang="bash" />
+
+## System Requirements
+
+- **Operating System:** Debian-based Linux distributions (Ubuntu, Debian, etc.)
+- **Architecture:** amd64 (x86_64)
+- **Privileges:** sudo access required for installation
+
+## Troubleshooting
+
+### GPG Key Issues
+If you encounter GPG verification errors:
+```sh
+# Remove old key if it exists
+sudo rm -f /usr/share/keyrings/apt.fuabioo.gpg
+
+# Re-download the key
+curl -fsSL https://apt.fuabioo.com/public.gpg | sudo tee /usr/share/keyrings/apt.fuabioo.gpg > /dev/null
+```
+
+### Repository Connection Issues
+If you can't connect to the repository:
+```sh
+# Test connectivity
+curl -I https://apt.fuabioo.com
+
+# Check repository configuration
+cat /etc/apt/sources.list.d/apt.fuabioo.list
+```
+
+### Package Not Found
+If a package isn't found after setup:
+```sh
+# Force refresh package lists
+sudo apt update --allow-releaseinfo-change
+```
+
+## Uninstalling the Repository
+
+To completely remove the repository from your system:
+
+1. **Remove all installed packages** (optional):
+   ```sh
+   sudo apt remove dontrm fastfetch buf-fmt-stdin php-cs-fixer-stdin stella
+   ```
+
+2. **Remove repository configuration**:
+   ```sh
+   sudo rm /etc/apt/sources.list.d/apt.fuabioo.list
+   ```
+
+3. **Remove GPG key**:
+   ```sh
+   sudo rm /usr/share/keyrings/apt.fuabioo.gpg
+   ```
+
+4. **Update package lists**:
+   ```sh
+   sudo apt update
+   ```
+
+---
+
+Ready to explore packages? Check out the [Package Catalogue](/packages/) to see all available tools!

@@ -6,90 +6,66 @@ hero:
   image:
     file: ../../assets/package.svg
   actions:
-    - text: Install
-      link: /#installation
+    - text: Installation Guide
+      link: /installation/
       icon: linux
     - text: Available packages
-      link: /#packages
+      link: /packages/
       icon: open-book
       variant: secondary
+    - text: How this repository works
+      link: /how-it-works/
+      icon: external
+      variant: minimal
+      attrs:
+        target: _blank
 ---
 
 import { Code } from '@astrojs/starlight/components';
-import { Steps } from '@astrojs/starlight/components';
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Installation
+## Quick Start
 
-<Steps>
+**One-liner repository setup**
+<Code code="curl -fsSL https://apt.fuabioo.com/public.gpg | sudo tee /usr/share/keyrings/apt.fuabioo.gpg > /dev/null && echo 'deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/apt.fuabioo.gpg] https://apt.fuabioo.com stable main' | sudo tee /etc/apt/sources.list.d/apt.fuabioo.list && sudo apt update" lang="bash" />
 
-1. **Install the GPG key** for security
-
-   ```sh
-   curl -fsSL https://apt.fuabioo.com/public.gpg | sudo tee /usr/share/keyrings/apt.fuabioo.gpg > /dev/null
-   ```
-
-2. Add the list to the APT sources for your specific architecture.
-
-   ```sh
-   echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/apt.fuabioo.gpg] https://apt.fuabioo.com stable main" | sudo tee /etc/apt/sources.list.d/apt.fuabioo.list
-   ```
-
-3. Verify your installation.
-
-   ```sh
-   sudo apt update
-   ```
-
-3. **(Optional)** Check that it works
-  This can be done by installing (or updating) any package
-
-   ```sh
-   sudo apt install dontrm
-   ```
-
-   ```sh
-   dontrm version
-   ```
-
-</Steps>
-
-## Packages
-
+**Some packages**
 <CardGrid stagger>
-  <Card title="Neovim" icon="vim">
-    Maintained static [neovim](https://neovim.io/) distribution
-		```sh
-		sudo apt install snvim
-		```
-	</Card>
 	<Card title="DON'T rm" icon="approve-check-circle">
-		[dontrm](https://dontrm.fuabioo.com)
-		helps you avoid accidentally destroying your system e.g. `sudo rm -fr /*`
+		Protect your system from accidental deletions without changing your GNU userland
 		```sh
 		sudo apt install dontrm
 		```
 	</Card>
-	<Card title="Buf formatter through stdin" icon="zed">
-	  Use [`buf`](https://buf.build/blog/introducing-buf-format)
-		straight from the stdin using [`buf-fmt-stdin`](https://github.com/Fuabioo/buf-fmt-stdin).
-		This is specially useful for the zed editor!
+	<Card title="Fastfetch" icon="laptop">
+		Fast system information display tool
 		```sh
-		sudo apt install buf-fmt-stdin
+		sudo apt install fastfetch
 		```
 	</Card>
-	<Card title="PHP CS Fixer formatter through stdin" icon="zed">
-	  Use [`PHP-CS-Fixer`](https://github.com/PHP-CS-Fixer/PHP-CS-Fixer)
-		straight from the stdin using [`php-cs-fixer-stdin`](https://github.com/Fuabioo/php-cs-fixer-stdin).
-		This is specially useful for the zed editor!
-		```sh
-		sudo apt install php-cs-fixer-stdin
-		```
-	</Card>
-	<Card title="More comming soon" icon="rocket">
-		Learn more in [my profile](https://github.com/Fuabioo).
-		```sh
-		sudo apt install <anything>
-		```
+	<Card title="View All Packages" icon="open-book">
+		[Browse the complete package catalog →](/packages/)
 	</Card>
 </CardGrid>
+
+## Repository Overview
+
+This APT repository serves two purposes:
+
+1. **⚡ Original Tools** - Custom utilities and wrappers built by Fuabioo to solve specific problems
+2. **🔧 External Packages** - Carefully selected third-party tools maintained here for convenience and reliability
+
+All packages are tested and maintained to ensure they work seamlessly together in your development environment.
+
+## Repository Stats
+
+- 📦 **Total Packages:** 5 public packages
+- ⚡ **Original Tools:** 4 packages built by Fuabioo
+- 🔧 **External Tools:** 1 maintained package
+- 💻 **Supported Architectures:** amd64, arm64, armhf, armv6, armv7
+- 👨‍💻 **Maintainer:** Fabio Mora (code@fabiomora.dev)
+- 🌐 **Repository:** https://apt.fuabioo.com
+
+---
+
+*Want to see more packages? Check out [Fuabioo's GitHub profile](https://github.com/Fuabioo) for upcoming releases!*
