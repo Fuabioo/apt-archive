@@ -4,7 +4,6 @@ major: 0
 description: "Top Coil CLI tool"
 architectures:
   amd64:
-    selector: x86_64
     url: https://github.com/Fuabioo/top-coil/releases/download/v${VERSION}/top-coil_Linux_x86_64.tar.gz
     bin_path: top-coil
   arm64:
