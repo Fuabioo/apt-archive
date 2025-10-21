@@ -1,0 +1,11 @@
+name: cloudflared
+repo: cloudflare/cloudflared
+package_type: deb
+description: "Cloudflare Tunnel client (formerly Argo Tunnel)"
+architectures:
+  amd64:
+    deb_pattern: "cloudflared-linux-amd64\\.deb$"
+  arm64:
+    deb_pattern: "cloudflared-linux-arm64\\.deb$"
+  armv7:
+    deb_pattern: "cloudflared-linux-armhf\\.deb$"
