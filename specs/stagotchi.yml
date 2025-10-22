@@ -1,0 +1,24 @@
+name: stagotchi
+repo: Fuabioo/stagotchi
+package_type: binary
+description: "Network health monitoring with a Tamagotchi-style virtual pet"
+architectures:
+  amd64:
+    url: https://github.com/Fuabioo/stagotchi/releases/download/v${VERSION}/stagotchi_Linux_amd64.tar.gz
+    bin_path: stagotchi
+    selector: amd64
+  arm64:
+    url: https://github.com/Fuabioo/stagotchi/releases/download/v${VERSION}/stagotchi_Linux_arm64.tar.gz
+    bin_path: stagotchi
+    selector: arm64
+postinst: |
+  #!/bin/bash
+  # Create config directory
+  mkdir -p /etc/stagotchi
+  mkdir -p /var/lib/stagotchi
+
+  # Set permissions
+  chmod 755 /usr/bin/stagotchi
+
+  echo "Stagotchi installed successfully!"
+  echo "Run 'stagotchi --help' for usage information"
